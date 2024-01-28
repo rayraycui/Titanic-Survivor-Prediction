@@ -1,0 +1,63 @@
+import numpy as np
+import pandas as pd
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import LabelEncoder
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+
+label_encoder = LabelEncoder()
+
+df = pd.read_csv("/kaggle/input/titanic/train.csv")
+x_train = df[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Ticket', 'Fare', 'Cabin', 'Embarked']].copy()
+y_train = df[['Survived']].copy()
+
+df = pd.read_csv("/kaggle/input/titanic/test.csv")
+x_test = df[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Ticket', 'Fare', 'Cabin', 'Embarked']].copy()
+y_test = df[['Survived']].copy()
+
+
+
+# Handle missing values
+numerical_cols = ['Age', 'Fare']
+imputer_num = SimpleImputer(strategy='mean')
+x_train[numerical_cols] = imputer_num.fit_transform(x_train[numerical_cols])
+
+categorical_cols = ['Pclass', 'Sex', 'Ticket', 'Cabin', 'Embarked']
+imputer_cat = SimpleImputer(strategy='most_frequent')
+x_train[categorical_cols] = imputer_cat.fit_transform(x_train[categorical_cols])
+
+# Convert categorical columns to numerical
+x_train['Sex'] = label_encoder.fit_transform(x_train['Sex'])
+x_train = pd.get_dummies(x_train, columns=['Pclass', 'Embarked'], drop_first=True)
+
+# Optionally drop high cardinality columns
+x_train.drop(['Ticket', 'Cabin'], axis=1, inplace=True)
+
+# Handle missing values
+numerical_cols = ['Age', 'Fare']
+imputer_num = SimpleImputer(strategy='mean')
+x_test[numerical_cols] = imputer_num.fit_transform(x_test[numerical_cols])
+
+categorical_cols = ['Pclass', 'Sex', 'Ticket', 'Cabin', 'Embarked']
+imputer_cat = SimpleImputer(strategy='most_frequent')
+x_test[categorical_cols] = imputer_cat.fit_transform(x_test[categorical_cols])
+
+# Convert categorical columns to numerical
+x_test['Sex'] = label_encoder.fit_transform(x_test['Sex'])
+x_test = pd.get_dummies(x_test, columns=['Pclass', 'Embarked'], drop_first=True)
+
+# Optionally drop high cardinality columns
+x_test.drop(['Ticket', 'Cabin'], axis=1, inplace=True)
+
+# Split the dataset
+#x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
+# Initialize and fit k-NN classifier
+k = 6
+knn = KNeighborsClassifier(n_neighbors=k)
+knn.fit(x_train, y_train.values.ravel())  # Converting y_train to a 1D array
+
+# Make predictions
+y_predict = knn.predict(x_test)  # Corrected x.test to x_test
+
+print('Predictions:',y_predict)
