@@ -55,6 +55,6 @@ knn = KNeighborsClassifier(n_neighbors=k)
 knn.fit(x_train, y_train.values.ravel())  # Converting y_train to a 1D array
 
 # Make predictions
-y_predict = knn.predict(x_test)  # Corrected x.test to x_test
+y_predict = knn.predict(x_test) 
 
 print('Predictions:',y_predict)
